@@ -1,0 +1,11 @@
+# Frontend
+FE/node_modules/
+FE/dist/
+FE/.vite/
+FE/.env
+FE/.env.*
+# Backend local database/runtime files
+BE/data/
+*.mv.db
+*.trace.db
+*.lock.db
