@@ -10,5 +10,7 @@ export const customerSchema = z.object({
 })
 
 export const customersSchema = z.array(customerSchema)
+export const addCustomerSchema = customerSchema.omit({ id: true })
 
 export type Customer = z.infer<typeof customerSchema>
+export type AddCustomerInput = z.infer<typeof addCustomerSchema>
