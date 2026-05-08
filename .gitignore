@@ -9,3 +9,5 @@ BE/data/
 *.mv.db
 *.trace.db
 *.lock.db
+FE/package-lock.json
+FE/package.json
