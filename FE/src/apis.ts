@@ -18,7 +18,6 @@ export function useGetCustomers() {
       const response = await api.get('/get-customers')
       return customerSchema.array().parse(response.data)
     },
-    enabled: false,
   })
 }
 
