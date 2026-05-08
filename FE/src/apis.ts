@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { customerSchema, customersSchema, type Customer } from './schemas'
 
 const api = axios.create({
@@ -21,17 +21,26 @@ export function useGetCustomers() {
   })
 }
 
-export async function addCustomer(): Promise<Customer[]> {
-  const payload = {
-    firstName: 'Alice',
-    lastName: 'Smith',
-    numChocolate: 2,
-    numVanilla: 1,
-    numStrawberry: 3,
-  } as const
+export function useAddCustomer() {
+  const queryClient = useQueryClient()
 
-  const response = await api.post('/add-customer', payload)
-  return customersSchema.parse(response.data)
+  return useMutation({
+    mutationFn: async () => {
+      const payload = {
+        firstName: 'Alice',
+        lastName: 'Smith',
+        numChocolate: 2,
+        numVanilla: 1,
+        numStrawberry: 3,
+      } as const
+
+      const response = await api.post('/add-customer', payload)
+      return customerSchema.array().parse(response.data)
+    },
+    onSuccess: (validatedCustomers) => {
+      queryClient.setQueryData(['customers'], validatedCustomers)
+    },
+  })
 }
 
 export async function removeCustomers(): Promise<Customer[]> {
