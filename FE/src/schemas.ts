@@ -9,4 +9,6 @@ export const customerSchema = z.object({
   numStrawberry: z.number().int().nonnegative(),
 })
 
+export const customersSchema = z.array(customerSchema)
+
 export type Customer = z.infer<typeof customerSchema>
