@@ -1,21 +1,17 @@
 import axios from 'axios'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { z } from 'zod'
 import {
   addCustomerSchema,
   customerSchema,
-  customersSchema,
   type AddCustomerInput,
-  type Customer,
 } from './schemas'
 
 const api = axios.create({
   baseURL: 'http://localhost:8080',
 })
 
-async function fetchCustomers(): Promise<Customer[]> {
-  const response = await api.get('/get-customers')
-  return customersSchema.parse(response.data)
-}
+const removeCustomerIdsSchema = z.array(z.number().int().nonnegative())
 
 export function useGetCustomers() {
   return useQuery({
@@ -42,14 +38,17 @@ export function useAddCustomer() {
   })
 }
 
-export async function removeCustomers(): Promise<Customer[]> {
-  const customers = await fetchCustomers()
-  const ids = customers
-    .map((customer) => customer.id)
-    .filter((id): id is number => id !== undefined)
+export function useRemoveCustomer() {
+  const queryClient = useQueryClient()
 
-  const payload = { ids }
-
-  const response = await api.post('/remove-customers', payload)
-  return customersSchema.parse(response.data)
+  return useMutation({
+    mutationFn: async (ids: number[]) => {
+      const validatedIds = removeCustomerIdsSchema.parse(ids)
+      const response = await api.post('/remove-customers', { ids: validatedIds })
+      return customerSchema.array().parse(response.data)
+    },
+    onSuccess: (validatedCustomers) => {
+      queryClient.setQueryData(['customers'], validatedCustomers)
+    },
+  })
 }

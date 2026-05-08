@@ -5,6 +5,7 @@ import {
   ModuleRegistry,
   type ColDef,
   type GetRowIdParams,
+  type SelectionChangedEvent,
 } from 'ag-grid-community'
 import type { Customer } from './schemas'
 import 'ag-grid-community/styles/ag-grid.css'
@@ -14,6 +15,7 @@ ModuleRegistry.registerModules([AllCommunityModule])
 
 type CustomerGridProps = {
   customers: Customer[]
+  onSelectedIdsChange: (ids: number[]) => void
 }
 
 const containerStyle: CSSProperties = {
@@ -25,7 +27,7 @@ const containerStyle: CSSProperties = {
   overflow: 'hidden',
 }
 
-function CustomerGrid({ customers }: CustomerGridProps) {
+function CustomerGrid({ customers, onSelectedIdsChange }: CustomerGridProps) {
   const columnDefs = useMemo<ColDef<Customer>[]>(
     () => [
       {
@@ -75,6 +77,14 @@ function CustomerGrid({ customers }: CustomerGridProps) {
   )
 
   const getRowId = (params: GetRowIdParams<Customer>) => String(params.data.id)
+  const onSelectionChanged = (event: SelectionChangedEvent<Customer>) => {
+    const selectedIds = event.api
+      .getSelectedRows()
+      .map((row) => row.id)
+      .filter((id): id is number => id !== undefined)
+
+    onSelectedIdsChange(selectedIds)
+  }
 
   return (
     <div className="ag-theme-alpine" style={containerStyle}>
@@ -83,7 +93,7 @@ function CustomerGrid({ customers }: CustomerGridProps) {
         columnDefs={columnDefs}
         rowSelection="multiple"
         getRowId={getRowId}
-        style={{ width: '100%', height: '100%' }}
+        onSelectionChanged={onSelectionChanged}
       />
     </div>
   )
