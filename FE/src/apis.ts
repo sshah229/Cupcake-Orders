@@ -1,6 +1,12 @@
 import axios from 'axios'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { customerSchema, customersSchema, type Customer } from './schemas'
+import {
+  addCustomerSchema,
+  customerSchema,
+  customersSchema,
+  type AddCustomerInput,
+  type Customer,
+} from './schemas'
 
 const api = axios.create({
   baseURL: 'http://localhost:8080',
@@ -25,16 +31,9 @@ export function useAddCustomer() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async () => {
-      const payload = {
-        firstName: 'Alice',
-        lastName: 'Smith',
-        numChocolate: 2,
-        numVanilla: 1,
-        numStrawberry: 3,
-      } as const
-
-      const response = await api.post('/add-customer', payload)
+    mutationFn: async (payload: AddCustomerInput) => {
+      const validatedPayload = addCustomerSchema.parse(payload)
+      const response = await api.post('/add-customer', validatedPayload)
       return customerSchema.array().parse(response.data)
     },
     onSuccess: (validatedCustomers) => {
