@@ -1,13 +1,25 @@
 import axios from 'axios'
-import { customersSchema, type Customer } from './schemas'
+import { useQuery } from '@tanstack/react-query'
+import { customerSchema, customersSchema, type Customer } from './schemas'
 
 const api = axios.create({
   baseURL: 'http://localhost:8080',
 })
 
-export async function getCustomers(): Promise<Customer[]> {
+async function fetchCustomers(): Promise<Customer[]> {
   const response = await api.get('/get-customers')
   return customersSchema.parse(response.data)
+}
+
+export function useGetCustomers() {
+  return useQuery({
+    queryKey: ['customers'],
+    queryFn: async () => {
+      const response = await api.get('/get-customers')
+      return customerSchema.array().parse(response.data)
+    },
+    enabled: false,
+  })
 }
 
 export async function addCustomer(): Promise<Customer[]> {
@@ -24,7 +36,7 @@ export async function addCustomer(): Promise<Customer[]> {
 }
 
 export async function removeCustomers(): Promise<Customer[]> {
-  const customers = await getCustomers()
+  const customers = await fetchCustomers()
   const ids = customers
     .map((customer) => customer.id)
     .filter((id): id is number => id !== undefined)

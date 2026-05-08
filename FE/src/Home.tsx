@@ -1,10 +1,5 @@
 import { Button, HStack, Heading, VStack } from '@chakra-ui/react'
-import { addCustomer, getCustomers, removeCustomers } from './apis'
-
-async function handleGetCustomers() {
-  const customers = await getCustomers()
-  console.log('getCustomers response:', customers)
-}
+import { addCustomer, removeCustomers, useGetCustomers } from './apis'
 
 async function handleAddCustomer() {
   const customers = await addCustomer()
@@ -17,6 +12,13 @@ async function handleDeleteCustomers() {
 }
 
 function Home() {
+  const { refetch: refetchCustomers } = useGetCustomers()
+
+  async function handleGetCustomers() {
+    const result = await refetchCustomers()
+    console.log('getCustomers response:', result.data)
+  }
+
   return (
     <VStack as="main" gap={4} align="start" p={6}>
       <Heading size="lg">Cupcake Orders</Heading>
