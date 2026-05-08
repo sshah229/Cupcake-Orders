@@ -1,15 +1,16 @@
-import { Button, HStack, Heading, Input, Text, VStack } from '@chakra-ui/react'
-import { useQueryClient } from '@tanstack/react-query'
+import { Button, Heading, Input, Text, VStack } from '@chakra-ui/react'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { removeCustomers, useAddCustomer, useGetCustomers } from './apis'
+import { useAddCustomer, useGetCustomers, useRemoveCustomer } from './apis'
 import AmountSelect from './AmountSelect'
 import CustomerGrid from './CustomerGrid'
 import type { AddCustomerInput } from './schemas'
 
 function Home() {
-  const queryClient = useQueryClient()
+  const [selectedIds, setSelectedIds] = useState<number[]>([])
   const getCustomers = useGetCustomers()
   const addCustomerMutation = useAddCustomer()
+  const removeCustomerMutation = useRemoveCustomer()
   const form = useForm<AddCustomerInput>({
     defaultValues: {
       firstName: '',
@@ -33,16 +34,26 @@ function Home() {
   }
 
   async function handleDeleteCustomers() {
-    const customers = await removeCustomers()
+    const customers = await removeCustomerMutation.mutateAsync(selectedIds)
     console.log('removeCustomers response:', customers)
-    await queryClient.invalidateQueries({ queryKey: ['customers'] })
+    setSelectedIds([])
   }
 
   return (
     <VStack as="main" gap={4} align="start" p={6} width="100%">
       <Heading size="lg">Cupcake Orders</Heading>
       <Text>Customers loaded: {getCustomers.data?.length ?? 0}</Text>
-      <CustomerGrid customers={getCustomers.data ?? []} />
+      <CustomerGrid
+        customers={getCustomers.data ?? []}
+        onSelectedIdsChange={setSelectedIds}
+      />
+      <Button
+        colorScheme="red"
+        onClick={handleDeleteCustomers}
+        disabled={selectedIds.length === 0 || removeCustomerMutation.isPending}
+      >
+        Delete Selected
+      </Button>
       <VStack
         as="form"
         align="start"
@@ -70,11 +81,6 @@ function Home() {
           Add Customer
         </Button>
       </VStack>
-      <HStack>
-        <Button colorScheme="red" onClick={handleDeleteCustomers}>
-          Delete Customers
-        </Button>
-      </HStack>
     </VStack>
   )
 }
